@@ -1,0 +1,77 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Todo App",
+    "output": "todo.html"
+  },
+  "layout": {
+    "mode": "grid",
+    "cols": 3
+  },
+  "components": [
+    {
+      "id": "CMP-001",
+      "type": "frontend",
+      "label": "Web UI",
+      "sublabel": "React",
+      "row": 0,
+      "col": 0
+    },
+    {
+      "id": "CMP-002",
+      "type": "security",
+      "label": "Auth Service",
+      "sublabel": "OAuth2",
+      "row": 1,
+      "col": 0
+    },
+    {
+      "id": "CMP-003",
+      "type": "backend",
+      "label": "Todo API",
+      "sublabel": "Spring Boot",
+      "row": 1,
+      "col": 1
+    },
+    {
+      "id": "CMP-004",
+      "type": "database",
+      "label": "Todo DB",
+      "sublabel": "PostgreSQL",
+      "row": 2,
+      "col": 1
+    },
+    {
+      "id": "CMP-005",
+      "type": "database",
+      "label": "Cache",
+      "sublabel": "Redis",
+      "row": 2,
+      "col": 0
+    }
+  ],
+  "connections": [
+    {
+      "id": "l1",
+      "from": "CMP-001",
+      "to": "CMP-002"
+    },
+    {
+      "id": "l2",
+      "from": "CMP-001",
+      "to": "CMP-003"
+    },
+    {
+      "id": "l3",
+      "from": "CMP-003",
+      "to": "CMP-004"
+    },
+    {
+      "id": "l4",
+      "from": "CMP-003",
+      "to": "CMP-005",
+      "variant": "dashed"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "364d68c1-12d7-40c6-b953-3014e3e5ef5f",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\Zlendo\\Downloads\\Java\\JavaProjects\\claude\\PDLC\\spike\\todo-nolabel.architecture.json",
+  "output": "C:\\Users\\Zlendo\\Downloads\\Java\\JavaProjects\\claude\\PDLC\\spike\\out\\todo.html",
+  "specification": {
+    "sha256": "2ec5978ad74ae72d9e23ff1f995605378a0e1a5f1099ca684c1c820b1b7f727e",
+    "bytes": 1308
+  },
+  "artifact": {
+    "sha256": "81c358c7fda4cf3f09f0b89dfff0d0eb5a60ab94aef6723df1511feffda0c24e",
+    "bytes": 831940
+  }
+}
