@@ -1,0 +1,85 @@
+# Maps a dependency (found in pom.xml, build.gradle, package.json, docker-compose, application.*, requirements.txt)
+# to an external system component of the design. No LLM involved.
+#   match:   case-insensitive text looked for in manifest and config files
+#   imports: source import prefixes (Java imports, JS module names) that mean "this code talks to it"
+#   layer:   the diagram layer (frontend, backend, security, messagebus, database, cloud, external)
+- name: PostgreSQL
+  layer: database
+  match: [postgresql, "image: postgres"]
+  imports: [org.postgresql, pg]
+  responsibility: Relational data store.
+- name: MySQL
+  layer: database
+  match: [mysql-connector, mysql2, "image: mysql", mariadb]
+  imports: [com.mysql, mysql2, mysql]
+  responsibility: Relational data store.
+- name: H2 Database
+  layer: database
+  match: [com.h2database, "jdbc:h2"]
+  imports: [org.h2]
+  responsibility: Embedded relational data store.
+- name: SQLite
+  layer: database
+  match: [sqlite-jdbc, better-sqlite3, sqlite3]
+  imports: [org.sqlite, better-sqlite3, sqlite3]
+  responsibility: Embedded file-based data store.
+- name: MongoDB
+  layer: database
+  match: [mongodb, mongoose]
+  imports: [com.mongodb, org.springframework.data.mongodb, mongodb, mongoose]
+  responsibility: Document data store.
+- name: Redis
+  layer: database
+  match: [data-redis, jedis, lettuce, ioredis, "\"redis\"", "image: redis"]
+  imports: [org.springframework.data.redis, redis.clients, ioredis, redis]
+  responsibility: In-memory cache and key-value store.
+- name: Elasticsearch
+  layer: database
+  match: [elasticsearch, opensearch]
+  imports: [co.elastic, org.elasticsearch, "@elastic/elasticsearch"]
+  responsibility: Search index.
+- name: Kafka
+  layer: messagebus
+  match: [kafka]
+  imports: [org.apache.kafka, org.springframework.kafka, kafkajs]
+  responsibility: Event streaming platform.
+- name: RabbitMQ
+  layer: messagebus
+  match: [rabbitmq, amqp]
+  imports: [com.rabbitmq, org.springframework.amqp, amqplib]
+  responsibility: Message broker.
+- name: Spring Security
+  layer: security
+  match: [spring-boot-starter-security, spring-security]
+  imports: [org.springframework.security]
+  responsibility: Authentication and authorization.
+- name: JWT Auth
+  layer: security
+  match: [jjwt, jsonwebtoken, java-jwt, passport]
+  imports: [io.jsonwebtoken, com.auth0.jwt, jsonwebtoken, passport]
+  responsibility: Token-based authentication.
+- name: OAuth2 Provider
+  layer: external
+  match: [oauth2-client, oauth2-resource-server, next-auth, "@auth0", keycloak]
+  imports: [org.springframework.security.oauth2, next-auth, keycloak]
+  responsibility: External identity provider.
+- name: AWS S3
+  layer: cloud
+  match: [software.amazon.awssdk, aws-java-sdk, "@aws-sdk", aws-sdk, boto3]
+  imports: [software.amazon.awssdk, com.amazonaws, "@aws-sdk", aws-sdk]
+  responsibility: Cloud object storage.
+- name: OpenAI API
+  layer: external
+  match: [openai]
+  imports: [com.openai, openai]
+  responsibility: External LLM provider.
+- name: Stripe
+  layer: external
+  match: [stripe]
+  imports: [com.stripe, stripe]
+  responsibility: External payment provider.
+- name: Email Provider
+  layer: external
+  match: [spring-boot-starter-mail, sendgrid, nodemailer, jakarta.mail]
+  imports: [org.springframework.mail, com.sendgrid, nodemailer, jakarta.mail]
+  responsibility: External email delivery.

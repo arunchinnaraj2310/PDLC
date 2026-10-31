@@ -32,8 +32,8 @@ public class IntentRouter {
 	private static final String SYSTEM = """
 			Classify the latest message sent to a product-design assistant.
 			change: the user asks to add, remove, rename, replace, connect or otherwise modify something in the \
-			requirements or the architecture (examples: "add Redis caching", "we need OAuth2 login", "remove the \
-			email provider", "make the API talk to a message queue", "also support admins").
+			requirements or the architecture (examples: "remove the email provider", "rename the Order API", "make \
+			the API talk to a message queue", "split the API into two services").
 			question: anything else, such as asking what exists, what something depends on, why, how something \
 			works, or small talk. Examples: "Which components does the API depend on?", "Why is there a cache?", \
 			"What does CMP-003 do?". A message that only asks about the design is a question even when it \
@@ -41,7 +41,10 @@ public class IntentRouter {
 				product: the user states or changes the product itself, at business level rather than technical: its \
 				vision or problem, who it is for, goals or success metrics, what is in or out of scope, a persona or a \
 				user story (examples: "our users are now small clinics", "the goal is to cut churn by 10%", \
-				"drop the mobile app from scope", "add a story for password reset by email").
+				"drop the mobile app from scope", "add a story for password reset by email"). Choosing or changing \
+				the technology stack also counts as product (programming language, framework, database engine, \
+				caching, authentication method, cloud provider, deployment): "use PostgreSQL instead of MySQL", \
+				"add Redis caching", "we need OAuth2 login", "deploy on AWS ECS", "rewrite the backend in Kotlin".
 				When in doubt choose question: a wrong "question" is harmless, a wrong "change" or "product" \
 			is not.
 			Earlier messages are context only: classify the latest message.""";

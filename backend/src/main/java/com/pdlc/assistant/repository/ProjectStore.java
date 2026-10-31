@@ -1,6 +1,8 @@
 package com.pdlc.assistant.repository;
 
+import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Where project files live. Paths are project-relative with forward slashes
@@ -21,5 +23,10 @@ public interface ProjectStore {
 	List<String> list(String projectId, String prefix);
 
 	List<String> listProjects();
+
+	/** The project's folder on disk, for stores that have one (the code extractor reads real files). */
+	default Optional<Path> localPath(String projectId) {
+		return Optional.empty();
+	}
 
 }

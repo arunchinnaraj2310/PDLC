@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-const ICON = { md: '📄', diagram: '🗺️' }
+const ICON = { md: '📄', diagram: '🗺️', code: '🧩' }
 
 function Folder({ node, activeId, onOpen }) {
   const [open, setOpen] = useState(true)

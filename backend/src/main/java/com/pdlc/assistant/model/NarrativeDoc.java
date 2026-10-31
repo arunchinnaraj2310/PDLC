@@ -21,7 +21,18 @@ public enum NarrativeDoc {
 					+ "'Pain points: ...'."),
 	USER_STORIES("docs/03-user-stories.md", "DOC-03", "User Stories", List.of(),
 			"One section per persona, headed by the persona's name, one story per bullet. Acceptance criteria, when "
-					+ "given, go at the end of the same bullet.");
+					+ "given, go at the end of the same bullet."),
+	TECH_DECISIONS("docs/05-technical-decisions.md", "DOC-05", "Technical Decisions",
+			List.of("Architecture style", "Frontend", "Backend", "Database", "Caching", "Authentication",
+					"Cloud and deployment"),
+			"Sections (use exactly these headings), each a list of bullets of the form 'Label: value', one decision "
+					+ "per bullet. Architecture style: 'Style: ...', 'API style: ...'. Frontend: 'Language: ...', "
+					+ "'Framework: ...', 'Build tool: ...', 'Styling: ...'. Backend: 'Language: ...', 'Framework: ...', "
+					+ "'Build tool: ...'. Database: 'Engine: ...', 'Schema management: ...'. Caching: 'Mechanism: ...', "
+					+ "'Cached data: ...'. Authentication: 'Method: ...', 'Provider: ...'. Cloud and deployment: "
+					+ "'Provider: ...', 'Runtime: ...', 'CI/CD: ...', 'Environments: ...'. Versions are part of the value "
+					+ "when the admin gave them. A section the admin says is not needed gets one bullet such as "
+					+ "'Not needed: no caching'.");
 
 	private final String path;
 

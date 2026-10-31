@@ -28,18 +28,34 @@ public class RequirementsImportService {
 
 	private static final Logger log = LoggerFactory.getLogger(RequirementsImportService.class);
 
-	private static final int MAX_COMPLETION_TOKENS = 2000;
+	private static final int MAX_COMPLETION_TOKENS = 3000;
 
 	private static final String SYSTEM = """
 			You turn a product requirements document into (1) atomic requirements and (2) the minimal set of \
 			architecture components needed to build it.
-			Requirements: one per distinct capability or constraint, each a short sentence. Do not turn technology \
-			choices into separate requirements. Use keys r1, r2, ... in order.
-			Components: use keys c1, c2, ... in order. name is at most 3 words and 25 characters (technologies \
-			such as PostgreSQL or Redis are components, named after the technology). layer must be one of the \
+			Requirements: one per distinct capability or constraint, each a short sentence. Technical decisions \
+			(language, framework, database, caching, authentication, architecture style, hosting and deployment) are \
+			requirements too: one per decision, for example 'The backend is written in Java 17 with Spring Boot 3'. \
+			Use keys r1, r2, ... in order.
+			Components: use keys c1, c2, ... in order. name is at most 3 words and 25 characters. Name code \
+			components by their role ('Web UI', 'Invoice API'), not by their framework; the framework goes in the \
+			technology field. Databases, caches and platforms are named after the product (PostgreSQL, Redis). layer must be one of the \
 			allowed values (messagebus is only for queues and brokers; background jobs and workers are backend; \
-			an email or payment provider is external). responsibility is one short sentence.
-			satisfies lists the keys of the requirements the component directly implements. Every requirement must \
+			an email or payment provider is external; the cloud or hosting platform is cloud). responsibility is one \
+			short sentence. Add a component for every technology the document names: the database, the cache, a \
+			message broker, the authentication provider and the cloud or hosting platform. Layers: a database or a \
+			cache (PostgreSQL, Redis, Memcached) is database; authentication and authorization (Spring Security, \
+			JWT, OAuth) is security; a queue is messagebus; hosting, container platforms and CI/CD are cloud. \
+			language is the \
+			programming language with version for components that are code (for example 'Java 17', 'JavaScript'), \
+			empty otherwise. technology is the framework or product with its version when the document gives one \
+			(for example 'Spring Boot 3', 'React 19', 'PostgreSQL 16', 'Redis', 'AWS ECS'). Use only what the \
+			document states; leave both empty when it does not say.
+			satisfies lists the keys of the requirements the component directly implements. A technical-decision \
+			requirement is satisfied by the component that uses that technology: 'the database is PostgreSQL 16' by \
+			the PostgreSQL component, 'the frontend is React' by the UI component, 'the app is deployed on AWS ECS' \
+			by the hosting component, 'the build tool is Maven' by the component that is built with it. Every \
+			requirement must \
 			be satisfied by at least one component: if a requirement needs a capability no other component \
 			provides (for example caching needs a cache component), add that component.
 			links lists the keys of the components it calls or depends on, caller to callee. The diagram must be \
@@ -114,6 +130,12 @@ public class RequirementsImportService {
 			Map<String, String> attrs = new LinkedHashMap<>();
 			attrs.put("layer", c.layer.name());
 			attrs.put("responsibility", c.responsibility);
+			if (c.language != null && !c.language.isBlank()) {
+				attrs.put("language", c.language.strip());
+			}
+			if (c.technology != null && !c.technology.isBlank()) {
+				attrs.put("technology", c.technology.strip());
+			}
 			attrs.put("satisfies", resolve(c.satisfies, reqIds, c.name, "requirement", warnings, satisfied));
 			attrs.put("links", resolve(c.links, cmpIds, c.name, "component", warnings, null));
 			cmpOps.add(new PatchOp("add", id, c.name, attrs));

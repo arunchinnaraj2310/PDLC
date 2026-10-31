@@ -39,7 +39,11 @@ public class ProposalBuilder {
 		PatchResult components = results.get(ProjectService.CMP_FILE);
 		if (components != null) {
 			try {
-				diagrams.checkRenders(projectId, MdDocument.parse(components.content()).entries());
+				List<String> hidden = diagrams.checkRenders(projectId, MdDocument.parse(components.content()).entries());
+				if (!hidden.isEmpty()) {
+					warnings.add(hidden.size() + " links will not be drawn in the diagram (the layout cannot route them "
+							+ "without crossing other components); they stay in 11-building-blocks.md");
+				}
 			}
 			catch (DiagramException | IllegalArgumentException e) {
 				warnings.add("The proposed components would not render: " + e.getMessage());

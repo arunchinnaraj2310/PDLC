@@ -17,6 +17,7 @@ import com.pdlc.assistant.dto.PatchRequest;
 import com.pdlc.assistant.dto.PatchResult;
 import com.pdlc.assistant.dto.PatchSetRequest;
 import com.pdlc.assistant.model.MdEntry;
+import com.pdlc.assistant.service.CodeSyncService;
 import com.pdlc.assistant.service.ProjectService;
 
 @RestController
@@ -24,7 +25,10 @@ public class ProjectController {
 
 	private final ProjectService projects;
 
-	public ProjectController(ProjectService projects) {
+	private final CodeSyncService codeSync;
+
+	public ProjectController(ProjectService projects, CodeSyncService codeSync) {
+		this.codeSync = codeSync;
 		this.projects = projects;
 	}
 
@@ -38,6 +42,12 @@ public class ProjectController {
 	public Map<String, String> create(@PathVariable String id) {
 		projects.create(id);
 		return Map.of("id", id);
+	}
+
+	/** What the last code sync did; {@code version} goes up whenever the design was changed from the code. */
+	@GetMapping("/api/projects/{id}/code/status")
+	public CodeSyncService.AutoSync codeStatus(@PathVariable String id) {
+		return codeSync.autoStatus(id);
 	}
 
 	@GetMapping("/api/projects/{id}/files")

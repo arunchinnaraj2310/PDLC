@@ -32,6 +32,12 @@ public class RequirementsDraft {
 
 		public String responsibility;
 
+		/** Programming language with version for code components (Java 17, TypeScript 5); empty otherwise. */
+		public String language;
+
+		/** The framework or product with version when stated (Spring Boot 3, PostgreSQL 16, Redis, AWS ECS). */
+		public String technology;
+
 		/** Keys of the requirements this component directly implements. */
 		public List<String> satisfies;
 

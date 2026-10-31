@@ -24,7 +24,27 @@ public enum InterviewStep {
 	PERSONAS(NarrativeDoc.PERSONAS, "Personas", null,
 			"at least one persona exists with a role, goals and pain points"),
 	USER_STORIES(NarrativeDoc.USER_STORIES, "User stories", null,
-			"there are stories that together cover every in-scope capability, each for a named persona");
+			"there are stories that together cover every in-scope capability, each for a named persona"),
+	ARCHITECTURE(NarrativeDoc.TECH_DECISIONS, "Architecture", "Architecture style",
+			"the architecture style is chosen (monolith, modular monolith, microservices, serverless, ...) and the "
+					+ "API style (REST, GraphQL, gRPC, ...), with the reason or constraint behind it"),
+	FRONTEND(NarrativeDoc.TECH_DECISIONS, "Frontend", "Frontend",
+			"the programming language, UI framework and build tool are named (versions if known), or the admin said "
+					+ "there is no frontend"),
+	BACKEND(NarrativeDoc.TECH_DECISIONS, "Backend", "Backend",
+			"the programming language with version, the framework and the build tool are named"),
+	DATABASE(NarrativeDoc.TECH_DECISIONS, "Database", "Database",
+			"the database engine is named for each kind of data (relational, document, search, ...) and how the schema "
+					+ "is managed, or the admin said no database is needed"),
+	CACHING(NarrativeDoc.TECH_DECISIONS, "Caching", "Caching",
+			"the caching mechanism is named (Redis, in-memory, CDN, HTTP caching, ...) with what is cached, or the "
+					+ "admin said no caching is needed"),
+	AUTH(NarrativeDoc.TECH_DECISIONS, "Auth", "Authentication",
+			"the way users authenticate and are authorized is named (identity provider, tokens or sessions, roles), or "
+					+ "the admin said there is no authentication"),
+	DEPLOYMENT(NarrativeDoc.TECH_DECISIONS, "Deployment", "Cloud and deployment",
+			"the cloud provider (or on-premises), the runtime (containers, VMs, serverless, managed platform), the "
+					+ "CI/CD approach and the environments are named");
 
 	private final NarrativeDoc doc;
 

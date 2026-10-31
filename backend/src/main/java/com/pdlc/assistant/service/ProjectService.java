@@ -140,6 +140,24 @@ public class ProjectService {
 		return NARRATIVE_COMMENT.matcher(text).replaceAll("").strip();
 	}
 
+	/** The project's {@code implementation/} folder on disk, if the store has one and it exists. */
+	public java.util.Optional<java.nio.file.Path> implementationDir(String projectId) {
+		requireProject(projectId);
+		return store.localPath(projectId).map(p -> p.resolve("implementation")).filter(java.nio.file.Files::isDirectory);
+	}
+
+	/** Reads a file that may not exist (caches under .pdlc/); null when absent. */
+	public String readIfExists(String projectId, String path) {
+		requireProject(projectId);
+		return store.exists(projectId, path) ? store.read(projectId, path) : null;
+	}
+
+	/** Writes an internal file (caches under .pdlc/) with no backup, version or changelog line. */
+	public void writeInternal(String projectId, String path, String content) {
+		requireProject(projectId);
+		store.write(projectId, path, content);
+	}
+
 	/** Interview steps recorded as complete in the front matter of the narrative documents. */
 	public Set<InterviewStep> completedSteps(String projectId) {
 		Set<InterviewStep> done = new LinkedHashSet<>();

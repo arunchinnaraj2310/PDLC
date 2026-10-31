@@ -5,7 +5,7 @@ import { getFile } from '../../api/projectApi.js'
 import DiagramPane from '../diagram/DiagramPane.jsx'
 
 // Loads the file from the project folder; reloads when `version` changes (the chat wrote or applied something).
-function MarkdownView({ projectId, tab, version }) {
+function MarkdownView({ projectId, tab, version, raw = false }) {
   const [state, setState] = useState({ key: null, text: '', error: null })
   const key = `${projectId}|${tab.id}|${version}`
 
@@ -30,9 +30,15 @@ function MarkdownView({ projectId, tab, version }) {
       <div className="mb-3 text-xs text-slate-400">{tab.id}</div>
       {loading && <p className="text-sm text-slate-500">Loading…</p>}
       {sameFile && state.error && <p className="text-sm text-red-700">{state.error}</p>}
-      <div className="prose prose-sm prose-slate max-w-none">
-        <Markdown remarkPlugins={[remarkGfm]}>{body}</Markdown>
-      </div>
+      {raw ? (
+        <pre className="overflow-x-auto rounded bg-slate-50 p-3 text-xs leading-relaxed text-slate-800">
+          {sameFile ? state.text : ''}
+        </pre>
+      ) : (
+        <div className="prose prose-sm prose-slate max-w-none">
+          <Markdown remarkPlugins={[remarkGfm]}>{body}</Markdown>
+        </div>
+      )}
     </div>
   )
 }
@@ -65,6 +71,7 @@ function CenterPane({ tabs, activeId, onSelect, onClose, projectId, diagramVersi
         <DiagramPane projectId={projectId} version={diagramVersion} onReload={onReloadDiagram} />
       )}
       {active?.kind === 'md' && <MarkdownView projectId={projectId} tab={active} version={fileVersion} />}
+      {active?.kind === 'code' && <MarkdownView projectId={projectId} tab={active} version={fileVersion} raw />}
     </section>
   )
 }

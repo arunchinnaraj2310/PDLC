@@ -102,10 +102,11 @@ function ChatPanel({ projectId, onModelChanged, onDocsChanged }) {
       <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
         {chat.messages.length === 0 && (
           <p className="m-auto max-w-xs text-center text-sm text-slate-500">
-            Tell me about the product you want to build and I will interview you, writing the product intent,
-            personas and user stories as we go. When they are ready, say "generate requirements" to get
-            requirements and a design to review. You can also paste an existing requirements document, change the
-            product at any time, or ask questions about the design.
+            Tell me about the product you want to build and I will interview you: product intent, personas, user
+            stories, then the technical decisions (languages, frameworks, database, caching, cloud). Say "generate
+            requirements" for the requirements and a detailed design, then "generate code" to build the app. Code
+            changes update the design automatically. You can also paste a requirements document, "sync code from
+            &lt;folder&gt;" for existing code, or ask questions about the design.
           </p>
         )}
         {chat.messages.map((m) =>

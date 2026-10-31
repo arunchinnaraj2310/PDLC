@@ -19,13 +19,19 @@ export function buildTree(paths) {
   const other = { id: 'other', name: 'Other', kind: 'folder', children: [] }
   for (const path of paths) {
     if (path.startsWith('diagrams/')) continue // derived; shown as the diagram node
-    const node = { id: path, name: fileName(path), kind: 'md' }
     const index = GROUPS.findIndex((g) => g.match.test(path))
+    const inCode = GROUPS[index]?.id === 'implementation'
+    const node = {
+      id: path,
+      // under implementation/ the folder structure is the point, so show the path inside it
+      name: inCode ? path.slice('implementation/'.length) : fileName(path),
+      kind: path.endsWith('.md') ? 'md' : 'code',
+    }
     ;(index >= 0 ? groups[index] : other).children.push(node)
   }
   groups.find((g) => g.id === 'design').children.push(DIAGRAM_NODE)
-  // Implementation is always shown: generated code will land here, built from the md files above
+  // Implementation is always shown: it is where code lives (synced into the design) and, later, is generated
   const impl = groups.find((g) => g.id === 'implementation')
-  if (!impl.children.length) impl.emptyHint = 'Code will be generated here from the requirements and design'
+  if (!impl.children.length) impl.emptyHint = 'Type "generate code" in the chat to build the app from the design, or "sync code from <folder>" to read existing code'
   return [...groups, other].filter((g) => g.children.length || g.emptyHint)
 }

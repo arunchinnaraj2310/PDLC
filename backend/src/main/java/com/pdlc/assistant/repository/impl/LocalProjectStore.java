@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -90,6 +91,11 @@ public class LocalProjectStore implements ProjectStore {
 		catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
+	}
+
+	@Override
+	public Optional<Path> localPath(String projectId) {
+		return Optional.of(resolve(projectId, ""));
 	}
 
 	private Path resolve(String projectId, String path) {

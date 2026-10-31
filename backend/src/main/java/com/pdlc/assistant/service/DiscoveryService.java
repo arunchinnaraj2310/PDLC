@@ -43,12 +43,17 @@ public class DiscoveryService {
 
 	private static final int SYNC_MAX_COMPLETION_TOKENS = 2000;
 
-	private static final String ALL_DONE = "All sections are complete: product intent, personas and user stories. "
-			+ "Type **generate requirements** to turn them into requirements and a design for review.";
+	private static final int MAX_STEPS_PER_MESSAGE = 4;
+
+	private static final String ALL_DONE = "All sections are complete: product intent, personas, user stories and "
+			+ "technical decisions. Type **generate requirements** to turn them into technical requirements and a "
+			+ "detailed design for review.";
 
 	private static final String SYNC_SYSTEM = """
-			You maintain three product documents for a product-development tool: Product Intent (PRODUCT_INTENT), \
-			Personas (PERSONAS) and User Stories (USER_STORIES). The admin is being interviewed; each message may \
+			You maintain four documents for a product-development tool: Product Intent (PRODUCT_INTENT), \
+			Personas (PERSONAS), User Stories (USER_STORIES) and Technical Decisions (TECH_DECISIONS: architecture, \
+			frontend, backend, database, caching, authentication, cloud and deployment). The admin is being \
+			interviewed; each message may \
 			answer a question, add detail or change an earlier decision. Turn what the admin said, in the \
 			conversation and in the latest message, into small edits to the documents.
 			Each edit has: file, section (a heading, no hashes), op, text.
@@ -90,8 +95,11 @@ public class DiscoveryService {
 
 	private static final String ASK_SYSTEM = """
 			You are a product discovery partner inside a product-development tool, interviewing the admin to build \
-			three documents: Product Intent, Personas and User Stories. The documents were just updated from the \
-			admin's last message. The interview goes section by section and only moves on once a section has enough \
+			four documents: Product Intent, Personas, User Stories and then Technical Decisions (architecture, \
+			frontend, backend, database, caching, authentication, cloud and deployment). The documents were just \
+			updated from the admin's last message. For a technical section, propose two or three concrete options \
+			that fit this product (named technologies with versions) with a one-line recommendation, and let the \
+			admin pick one or name their own; ask about one section at a time. The interview goes section by section and only moves on once a section has enough \
 			information; the interview status below says where it stands. Reply in short markdown:
 			1. One short sentence on what you captured from the last message (skip it if nothing). Do not announce \
 			completed sections yourself; that line is added for you. If the admin asked you something, answer it \
@@ -108,7 +116,7 @@ public class DiscoveryService {
 
 	private static final String REVISE_SYSTEM = """
 			You are the assistant inside a product-development tool. The product documents (Product Intent, \
-			Personas, User Stories) may have just been updated from the admin's message; the updated files are listed \
+			Personas, User Stories, Technical Decisions) may have just been updated from the admin's message; the updated files are listed \
 			below. In one to three sentences confirm what changed and in which document. If nothing changed, answer \
 			the message briefly from the documents. Do not start an interview. When documents changed, matching \
 			requirement and design changes are proposed right after this reply for the admin to review, so you may \
@@ -150,6 +158,7 @@ public class DiscoveryService {
 			events.docs(written.stream().map(NarrativeDoc::path).toList());
 		}
 		String brief = "";
+		String focus = "";
 		if (!revising) {
 			events.status("Checking whether this section has enough information…");
 			StepResult result = assess(projectId, message, history);
@@ -165,7 +174,9 @@ public class DiscoveryService {
 					return;
 				}
 			}
-			brief ="\n\nInterview status:\n" + stepStatus(done) + "\nSections completed this turn, already announced to the admin (do not mention or repeat): "
+			focus = "\n\n" + currentSection(done, result.missing()) + " Do not say that sections or the interview are "
+					+ "complete unless the status says there is no current section.";
+			brief = "\n\nInterview status:\n" + stepStatus(done) + "\nSections completed this turn, already announced to the admin (do not mention or repeat): "
 					+ (finished.isEmpty() ? "none" : finished.stream().map(InterviewStep::label).collect(Collectors.joining(", ")))
 					+ "\n" + currentSection(done, result.missing());
 		}
@@ -178,7 +189,7 @@ public class DiscoveryService {
 		String updated = written.isEmpty() ? "none"
 				: written.stream().map(NarrativeDoc::path).collect(Collectors.joining(", "));
 		// the interview status goes last: it is what the reply must follow, so it should be the freshest thing read
-		String system = (revising ? REVISE_SYSTEM : ASK_SYSTEM) + "\n\nUpdated this turn: " + updated
+		String system = (revising ? REVISE_SYSTEM : ASK_SYSTEM) + focus + "\n\nUpdated this turn: " + updated
 				+ "\n\nCurrent documents:\n" + documents(projectId) + brief;
 		List<ChatTurn> turns = new ArrayList<>(history);
 		turns.add(new ChatTurn("user", message));
@@ -231,41 +242,42 @@ public class DiscoveryService {
 	}
 
 	/**
-	 * Decides whether the current step now has enough information, with a small focused model call. Steps whose
-	 * section this turn's edits emptied are reopened first. At most the current step completes per message, so
-	 * information the admin volunteered early is confirmed in a later turn instead of being waved through unseen.
+	 * Decides, with a small focused model call per step, whether the current step now has enough information, and
+	 * keeps going while the next steps are already covered (an admin who answers three questions at once should not
+	 * have to say "ok" three times), at most {@value #MAX_STEPS_PER_MESSAGE} steps per message. Every step must pass
+	 * the strict check and have content in its section. Steps whose section this turn's edits emptied are reopened.
 	 */
 	private StepResult assess(String projectId, String message, List<ChatTurn> history) {
 		Set<InterviewStep> done = new LinkedHashSet<>(projects.completedSteps(projectId));
 		done.removeIf(step -> !hasContent(projectId, step));
-		InterviewStep current = firstOpen(done);
 		List<InterviewStep> finished = new ArrayList<>();
 		String missing = "";
-		if (current != null) {
-			if (hasContent(projectId, current)) {
-				StringBuilder input = new StringBuilder("Step: ").append(current.label()).append("\nEnough when: ")
-					.append(current.enough())
-					.append("\n\nDocument (judge only the section or content for this step):\n")
-					.append(projects.narrativeBody(projectId, current.doc()));
-				history.stream()
-					.skip(Math.max(0, history.size() - 2))
-					.forEach(t -> input.append("\n").append(t.role()).append(": ").append(t.content()));
-				input.append("\n\nLatest admin message:\n").append(message);
-				StepCheck check = llm.complete(
-						new LlmRequest("interview-step", STEP_SYSTEM, input.toString(), discoveryModel, 120),
-						StepCheck.class);
-				if (check.met) {
-					done.add(current);
-					finished.add(current);
-				}
-				else {
-					missing = check.missing == null ? "" : check.missing.strip();
-				}
-				log.info("interview project={} step={} met={} missing='{}'", projectId, current, check.met, missing);
+		for (int i = 0; i < MAX_STEPS_PER_MESSAGE; i++) {
+			InterviewStep current = firstOpen(done);
+			if (current == null) {
+				break;
 			}
-			else {
+			if (!hasContent(projectId, current)) {
 				missing = "a first answer for this section";
+				break;
 			}
+			StringBuilder input = new StringBuilder("Step: ").append(current.label()).append("\nEnough when: ")
+				.append(current.enough())
+				.append("\n\nDocument (judge only the section or content for this step):\n")
+				.append(projects.narrativeBody(projectId, current.doc()))
+				.append("\n\nConversation so far:");
+			history.forEach(t -> input.append("\n").append(t.role()).append(": ").append(t.content()));
+			input.append("\n\nLatest admin message:\n").append(message);
+			StepCheck check = llm.complete(
+					new LlmRequest("interview-step", STEP_SYSTEM, input.toString(), discoveryModel, 120), StepCheck.class);
+			String why = check.missing == null ? "" : check.missing.strip();
+			log.info("interview project={} step={} met={} missing='{}'", projectId, current, check.met, why);
+			if (!check.met) {
+				missing = why;
+				break;
+			}
+			done.add(current);
+			finished.add(current);
 		}
 		projects.setCompletedSteps(projectId, done);
 		return new StepResult(finished, missing);
@@ -323,10 +335,10 @@ public class DiscoveryService {
 				text = prefix + text.replaceFirst("(?i)^(in|out of) scope: *", "");
 				section = "Scope";
 			}
-			if (edit.file == NarrativeDoc.PRODUCT_INTENT) {
+			if (!edit.file.sections().isEmpty()) {
 				// the model also uses the step's short label ("Goals") for the section ("Goals and success metrics")
 				for (InterviewStep step : InterviewStep.values()) {
-					if (step.section() != null && (step.label().equalsIgnoreCase(section)
+					if (step.doc() == edit.file && step.section() != null && (step.label().equalsIgnoreCase(section)
 							|| step.name().replace('_', ' ').equalsIgnoreCase(section))) {
 						section = step.section();
 					}

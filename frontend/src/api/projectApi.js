@@ -28,3 +28,7 @@ export const getFile = (id, path) => apiRequest(`/projects/${id}/file?path=${enc
 
 // Steps of the product interview [{key, label, state: done|current|todo}]; empty once requirements exist.
 export const getInterview = (id) => apiRequest(`/projects/${id}/interview`)
+
+// What the last code sync did: {version, at, summary, warnings, error}. `version` goes up whenever the design was
+// changed from the code, by "sync code", code generation or the background watcher.
+export const getCodeStatus = (id) => apiRequest(`/projects/${id}/code/status`)

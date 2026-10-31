@@ -1,0 +1,11 @@
+{
+  "name": "pdlc-extract",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Deterministic code fact extractor (tree-sitter WASM): Java and TS/JS to facts.json",
+  "dependencies": {
+    "tree-sitter-wasms": "^0.1.13",
+    "web-tree-sitter": "^0.22.6"
+  }
+}
