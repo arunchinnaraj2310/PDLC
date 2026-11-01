@@ -2,12 +2,14 @@ import { useState } from 'react'
 
 const ICON = { md: '📄', diagram: '🗺️', code: '🧩' }
 
-function Folder({ node, activeId, onOpen }) {
-  const [open, setOpen] = useState(true)
+function Folder({ node, activeId, onOpen, depth = 0 }) {
+  const [open, setOpen] = useState(depth < 2)
+  const indent = 12 + depth * 14
   return (
     <li>
       <button
-        className="flex w-full items-center gap-1.5 px-3 py-1 text-left text-sm font-medium text-slate-700 hover:bg-slate-100"
+        className="flex w-full items-center gap-1.5 py-1 pr-3 text-left text-sm font-medium text-slate-700 hover:bg-slate-100"
+        style={{ paddingLeft: indent }}
         onClick={() => setOpen((o) => !o)}
         aria-expanded={open}
       >
@@ -16,24 +18,29 @@ function Folder({ node, activeId, onOpen }) {
         <span className="truncate">{node.name}</span>
       </button>
       {open && node.emptyHint && (
-        <p className="py-1 pl-9 pr-3 text-xs italic text-slate-400">{node.emptyHint}</p>
+        <p className="py-1 pr-3 text-xs italic text-slate-400" style={{ paddingLeft: indent + 24 }}>{node.emptyHint}</p>
       )}
       {open && (
         <ul>
-          {node.children.map((child) => (
-            <li key={child.id}>
-              <button
-                className={`flex w-full items-center gap-1.5 py-1 pl-9 pr-3 text-left text-sm hover:bg-slate-100 ${
-                  child.id === activeId ? 'bg-slate-200 font-medium text-slate-900' : 'text-slate-600'
-                }`}
-                onClick={() => onOpen(child)}
-                title={child.id}
-              >
-                <span>{ICON[child.kind]}</span>
-                <span className="truncate">{child.name}</span>
-              </button>
-            </li>
-          ))}
+          {node.children.map((child) =>
+            child.kind === 'folder' ? (
+              <Folder key={child.id} node={child} activeId={activeId} onOpen={onOpen} depth={depth + 1} />
+            ) : (
+              <li key={child.id}>
+                <button
+                  className={`flex w-full items-center gap-1.5 py-1 pr-3 text-left text-sm hover:bg-slate-100 ${
+                    child.id === activeId ? 'bg-slate-200 font-medium text-slate-900' : 'text-slate-600'
+                  }`}
+                  style={{ paddingLeft: indent + 24 }}
+                  onClick={() => onOpen(child)}
+                  title={child.id}
+                >
+                  <span>{ICON[child.kind]}</span>
+                  <span className="truncate">{child.name}</span>
+                </button>
+              </li>
+            ),
+          )}
         </ul>
       )}
     </li>
